@@ -50,22 +50,22 @@ export class Repository<T extends RepositoryDocument> {
         return db.collection<T>(this.collectionName).find(query || {}).toArray();
     }
 
-    // public async save(model: T): Promise<T> {
-    //     const db = await Repository.getDb();
-    //     if (!model._id || model._id.length === 0) {
-    //         throw new Error('Model ID not set');
-    //     }
-    //     const response = await db.collection(this.collectionName).findOneAndUpdate(
-    //         {_id: model._id},
-    //         model
-    //     );
+    public async save(model: T): Promise<WithId<T> | null> {
+        const db = await Repository.getDb();
+        if (!model._id) {
+            throw new Error('Model ID not set');
+        }
+        const response = await db.collection(this.collectionName).findOneAndUpdate(
+            {_id: model._id},
+            model
+        );
 
-    //     if (response.lastErrorObject.n === 1 && response.lastErrorObject.updatedExisting) {
-    //         return this.getByID(model._id);
-    //     } else {
-    //         throw new Error('Request not found');
-    //     }
-    // }
+        if (response && response.lastErrorObject.n === 1 && response.lastErrorObject.updatedExisting && response !== null) {
+            return this.getByID(model._id.toString());
+        } else {
+            throw new Error('Request not found');
+        }
+    }
 
     public async create(model: T): Promise<WithId<T> | null> {
         const db = await Repository.getDb();
